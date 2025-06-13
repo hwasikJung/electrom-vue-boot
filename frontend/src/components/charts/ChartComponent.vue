@@ -1,7 +1,12 @@
+
 <template>
   <div class="chart-widget">
     <div class="chart-container">
       <div v-if="loading" class="loading">데이터 로딩 중...</div>
+      <div v-else-if="error" class="error">
+        {{ error }}
+        <button @click="retryLoad" class="retry-btn">다시 시도</button>
+      </div>
       <v-chart v-else class="chart" :option="option" autoresize />
     </div>
     <div class="controls">
@@ -35,6 +40,10 @@ use([
 ]);
 
 const loading = ref(true);
+const error = ref(null);
+const retryCount = ref(0);
+const maxRetries = 5;
+
 const option = ref({
   title: {
     text: '부서별 매출 실적',
@@ -108,22 +117,13 @@ const option = ref({
   ]
 });
 
-// // 창 컨트롤 함수
-// const minimize = () => {
-//   window.electronAPI.minimize();
-// };
-//
-// const maximize = () => {
-//   window.electronAPI.maximize();
-// };
-//
-// const close = () => {
-//   window.electronAPI.close();
-// };
+// 데이터 로드 함수 (재시도 로직 포함)
+const loadData = async (isRetry = false) => {
+  if (!isRetry) {
+    loading.value = true;
+    error.value = null;
+  }
 
-// 데이터 로드 함수
-const loadData = async () => {
-  loading.value = true;
   try {
     const data = await window.electronAPI.getSalesData();
 
@@ -143,7 +143,6 @@ const loadData = async () => {
             );
             return item ? item.amount : 0;
           }),
-          // barWidth: '30%',
           emphasis: {
             itemStyle: {
               shadowBlur: 10,
@@ -170,12 +169,29 @@ const loadData = async () => {
         },
         series: seriesData
       };
+
+      retryCount.value = 0; // 성공 시 재시도 카운트 리셋
     }
-  } catch (error) {
-    console.error('데이터 로드 오류:', error);
+  } catch (err) {
+    console.error('데이터 로드 오류:', err);
+
+    if (retryCount.value < maxRetries) {
+      retryCount.value++;
+      console.log(`재시도 ${retryCount.value}/${maxRetries} 후 3초 후 다시 시도...`);
+      setTimeout(() => loadData(true), 3000);
+      return;
+    } else {
+      error.value = '백엔드 서버 연결에 실패했습니다. 서버가 실행 중인지 확인해주세요.';
+    }
   } finally {
     loading.value = false;
   }
+};
+
+// 재시도 함수
+const retryLoad = () => {
+  retryCount.value = 0;
+  loadData();
 };
 
 // 테스트 데이터 생성 함수
@@ -191,6 +207,7 @@ onMounted(async () => {
   await loadData();
 });
 </script>
+
 <style scoped>
 .chart-widget {
   margin-bottom: 20px;
@@ -204,7 +221,7 @@ onMounted(async () => {
 
 .chart-container {
   width: 100%;
-  height: 600px; /* 높이 증가 */
+  height: 600px;
   position: relative;
   padding: 20px;
 }
@@ -215,6 +232,31 @@ onMounted(async () => {
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 18px;
+}
+
+.error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #ff5722;
+  font-size: 16px;
+}
+
+.retry-btn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #ff5722;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.retry-btn:hover {
+  opacity: 0.8;
 }
 
 .chart {

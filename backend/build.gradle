@@ -1,26 +1,99 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.1.0'
-    id 'io.spring.dependency-management' version '1.1.0'
+    id 'org.springframework.boot' version '3.5.0'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
-group = 'com.example'
-version = '1.0.0'
-sourceCompatibility = '17'
+group = 'com.sqisoft'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.2'
-    implementation 'org.postgresql:postgresql'
+    
+    // Jakarta EE Validation (javax -> jakarta 변경)
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    
+    // Spring Boot Web - Logback 제외하고 Log4j2 사용
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // MyBatis 최신 3.x 버전 (Spring Boot 3.x 호환)
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
+
+    // Spring Security - Logback 제외
+//    implementation('org.springframework.boot:spring-boot-starter-security') {
+//        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+//    }
+
+    // egovframe 프레임워크 (4.2.0으로 업데이트 - Jakarta EE 지원)
+//    implementation 'org.egovframe.rte:org.egovframe.rte.fdl.cmmn:4.2.0'
+
+    // JWT 라이브러리 (최신 버전으로 업데이트)
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+    // Apache Commons 라이브러리 (최신 버전)
+    implementation 'org.apache.commons:commons-lang3:3.17.0'
+    implementation 'commons-io:commons-io:2.16.1'
+    implementation 'org.apache.poi:poi:5.3.0'
+    implementation 'org.apache.poi:poi-ooxml:5.3.0'
+
+    // Oracle i18n 라이브러리
+    implementation 'com.oracle.database.nls:orai18n:23.5.0.24.07'
+
+    // 로깅 관련 - Log4j2만 사용
+    implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
+
+
+    // JSON 라이브러리 (Spring Boot starter에 포함되므로 버전 명시 불요)
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // ModelMapper (최신 버전)
+    implementation 'org.modelmapper:modelmapper:3.2.1'
+
+    // SpringDoc (Swagger 3.0 지원)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
+
+
+    // JDBC 드라이버 (최신 버전)
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11:23.5.0.24.07'
+    runtimeOnly 'org.postgresql:postgresql:42.7.4'
+
+    // Lombok (최신 버전)
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+    // Jakarta Servlet API (javax -> jakarta 변경)
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+
+    // 테스트 라이브러리
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.4'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    // 개발 도구
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+
 }
 
-jar {
-    archiveFileName = 'app.jar'
+tasks.named('test') {
+    useJUnitPlatform()
 }

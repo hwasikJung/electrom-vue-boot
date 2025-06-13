@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" monitorInterval="5">
+    <!-- Common properties -->
+    <Properties>
+        <Property name="logFileName">log4jFile</Property>
+        <Property name="consoleLayout">[%d{yyyy-MM-dd HH:mm:ss}] [%-5p] [%c{1}:%L] - %m%n</Property>
+        <Property name="fileLayout">%d [%t] %-5level %c(%M:%L) - %m%n</Property>
+        <Property name="logDir">src/main/resources/log</Property>
+    </Properties>
+
+    <!-- Appenders -->
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${consoleLayout}"/>
+        </Console>
+
+        <RollingFile name="file" fileName="${logDir}/${logFileName}.log"
+                     filePattern="${logDir}/${logFileName}.%d{yyyy-MM-dd-hh}.log">
+            <PatternLayout pattern="${fileLayout}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy modulate="true" interval="1"/>
+            </Policies>
+            <DefaultRolloverStrategy max="5" fileIndex="min">
+                <Delete basePath="${logDir}" maxDepth="3">
+                    <IfLastModified age="10d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <RollingFile name="daily_error"
+                     fileName="${logDir}/error/error.log"
+                     filePattern="${logDir}/error/error.%d{yyyy-MM-dd}.log">
+            <PatternLayout pattern="${fileLayout}"/>
+            <LevelRangeFilter minLevel="WARN" maxLevel="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${logDir}/error" maxDepth="3">
+                    <IfLastModified age="10d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+    </Appenders>
+
+    <!-- Loggers -->
+    <Loggers>
+        <!-- Spring Framework logs -->
+        <logger name="com.sqisoft.gr" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="file"/>
+        </logger>
+        <logger name="org.springframework.core" level="info" additivity="false">
+            <AppenderRef ref="console"/>
+        </logger>
+        <logger name="org.springframework.beans" level="info" additivity="false">
+            <AppenderRef ref="console"/>
+        </logger>
+        <logger name="org.springframework.context" level="info" additivity="false">
+            <AppenderRef ref="console"/>
+        </logger>
+        <logger name="org.springframework.web" level="info" additivity="false">
+            <AppenderRef ref="console"/>
+        </logger>
+
+        <!-- SQL Logger -->
+        <logger name="jdbc.sqltiming" level="warn" additivity="false">
+            <AppenderRef ref="console"/>
+        </logger>
+        <logger name="jdbc.sqlonly" level="info" additivity="false">
+            <AppenderRef ref="console"/>
+        </logger>
+        <logger name="jdbc.audit" level="warn" additivity="false">
+            <AppenderRef ref="console"/>
+        </logger>
+        <logger name="jdbc.resultset" level="warn" additivity="false">
+            <AppenderRef ref="console"/>
+        </logger>
+        <logger name="jdbc.resultsettable" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+        </logger>
+
+        <!-- Root logger -->
+        <Root level="info">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="file"/>
+        </Root>
+    </Loggers>
+</Configuration>

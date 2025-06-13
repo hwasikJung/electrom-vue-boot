@@ -7,18 +7,18 @@
     <div v-else>
       <table>
         <thead>
-        <tr>
-          <th>부서</th>
-          <th>금액</th>
-          <th>연도</th>
-        </tr>
+          <tr>
+            <th>부서</th>
+            <th>금액</th>
+            <th>연도</th>
+          </tr>
         </thead>
         <tbody>
-        <tr v-for="(sale, index) in salesList" :key="index">
-          <td>{{ sale.department }}</td>
-          <td>{{ sale.amount }}</td>
-          <td>{{ sale.year }}</td>
-        </tr>
+          <tr v-for="(sale, index) in salesList" :key="index">
+            <td>{{ sale.department }}</td>
+            <td>{{ sale.amount }}</td>
+            <td>{{ sale.year }}</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { salesService } from '/services/api.js';
 import Sales from '/models/Sales.js';
 
@@ -46,7 +46,9 @@ export default {
         if (response.data && response.data.status === 'OK') {
           salesList.value = Sales.fromApiResponse(response.data.data);
         } else {
-          throw new Error(response.data.message || '데이터를 가져오는데 실패했습니다.');
+          throw new Error(
+            response.data.message || '데이터를 가져오는데 실패했습니다.'
+          );
         }
       } catch (err) {
         error.value = err.message || '데이터를 가져오는데 문제가 발생했습니다.';
@@ -64,5 +66,5 @@ export default {
       error
     };
   }
-}
+};
 </script>

@@ -1,0 +1,20 @@
+{
+  "name": "datanet-portal",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "electron:dev": "cd frontend && npm run electron:dev",
+    "electron:build": "cd frontend && npm run electron:build",
+    "backend:dev": "cd backend && .\\gradlew.bat bootRun",
+    "frontend:dev": "cd frontend && npm run dev",
+    "fullstack:dev": "npm run backend:start && npm run frontend:start && npm run electron:start",
+    "backend:start": "start /B npm run backend:dev",
+    "frontend:start": "wait-on http://localhost:4141/api/v1/test/test-list && start /B npm run frontend:dev",
+    "electron:start": "wait-on http://localhost:4141/api/v1/test/test-list http://localhost:4242 && cd frontend && electron ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "wait-on": "^8.0.1"
+  }
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+    <settings>
+        <setting name="callSettersOnNulls" value="true"/> <!--true: 쿼리 결과 필드가 null인 경우, 누락이 되서 나오는데 누락이 안되게 하는 설정-->
+        <setting name="jdbcTypeForNull" value="NULL"/> <!-- 쿼리에 보내는 파라메터가 null인 경우, 오류 발생하는 것 방지  예) #{search.user} -->
+        <setting name="cacheEnabled" value="false"/> <!-- MyBatis 캐시 기능 비활성화 -->
+        <setting name="useGeneratedKeys" value="false"/> <!-- 데이터베이스에서 자동 생성된 키 사용 비활성화 -->
+        <setting name="mapUnderscoreToCamelCase"
+                 value="true"/> <!-- DB 컬럼명의 언더스코어를 자바의 카멜케이스로 자동 매핑 (예: user_name -> userName) -->
+        <setting name="autoMappingUnknownColumnBehavior" value="NONE"/> <!-- 매핑되지 않은 컬럼 무시 -->
+    </settings>
+
+    <typeHandlers>
+        <typeHandler handler="org.apache.ibatis.type.LocalDateTimeTypeHandler"
+                     javaType="java.time.LocalDateTime"
+                     jdbcType="TIMESTAMP"/>
+    </typeHandlers>
+</configuration>

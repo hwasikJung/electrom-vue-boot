@@ -1,15 +1,19 @@
-// index.js - 프론트엔드 초기화 설정
 import { createApp } from 'vue';
+import { Quasar } from 'quasar';
+
+// Quasar CSS 파일들 import
+import 'quasar/src/css/index.sass';
+
+// 아이콘 라이브러리 import (Material Icons)
+import '@quasar/extras/material-icons/material-icons.css';
+
+// 앱 컴포넌트
 import App from './App.vue';
-import './assets/main.css';
 
-// FontAwesome 설정 (사용 중인 경우)
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faUsers, faChartLine } from '@fortawesome/free-solid-svg-icons';
+const myApp = createApp(App);
 
-library.add(faUsers, faChartLine);
+myApp.use(Quasar, {
+  plugins: {} // 필요한 플러그인들 (Notify, Dialog 등)
+});
 
-const app = createApp(App);
-app.component('font-awesome-icon', FontAwesomeIcon);
-app.mount('#app');
+myApp.mount('#app');

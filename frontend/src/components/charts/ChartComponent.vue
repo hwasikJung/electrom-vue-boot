@@ -1,211 +1,140 @@
-
 <template>
   <div class="chart-widget">
     <div class="chart-container">
-      <div v-if="loading" class="loading">데이터 로딩 중...</div>
+      <div v-if="loading" class="loading">{{ loadingText }}</div>
       <div v-else-if="error" class="error">
         {{ error }}
-        <button @click="retryLoad" class="retry-btn">다시 시도</button>
+        <button v-if="showRetryButton" @click="handleRetry" class="retry-btn">
+          다시 시도
+        </button>
       </div>
-      <v-chart v-else class="chart" :option="option" autoresize />
+      <v-chart
+        v-else
+        class="chart"
+        :option="chartOption"
+        :autoresize="autoresize"
+        @click="handleChartClick"
+      />
     </div>
-    <div class="controls">
-      <button @click="loadData" class="refresh-btn">데이터 새로고침</button>
-      <button @click="insertData" class="insert-btn">테스트 데이터 생성</button>
-    </div>
+    <!--    <div v-if="showControls" class="controls">
+          <slot name="controls">
+            <button
+              v-if="showRefreshButton"
+              @click="$emit('refresh')"
+              class="refresh-btn"
+            >
+              {{ refreshButtonText }}
+            </button>
+          </slot>
+        </div>-->
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { computed } from 'vue';
 import { use } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
-import { BarChart } from 'echarts/charts';
 import {
-  TooltipComponent,
-  LegendComponent,
+  BarChart,
+  LineChart,
+  PieChart,
+  ScatterChart,
+  TreemapChart
+} from 'echarts/charts';
+import {
+  DataZoomComponent,
   GridComponent,
-  TitleComponent
+  LegendComponent,
+  TitleComponent,
+  ToolboxComponent,
+  TooltipComponent
 } from 'echarts/components';
 import VChart from 'vue-echarts';
 
-// ECharts 컴포넌트 등록
+// ECharts 컴포넌트 등록 (Treemap 추가)
 use([
   CanvasRenderer,
   BarChart,
+  LineChart,
+  PieChart,
+  ScatterChart,
+  TreemapChart, // Treemap 차트 추가
   TooltipComponent,
   LegendComponent,
   GridComponent,
-  TitleComponent
+  TitleComponent,
+  ToolboxComponent,
+  DataZoomComponent
 ]);
 
-const loading = ref(true);
-const error = ref(null);
-const retryCount = ref(0);
-const maxRetries = 5;
-
-const option = ref({
-  title: {
-    text: '부서별 매출 실적',
-    textStyle: {
-      fontSize: 18
-    },
-    left: 'center'
+// Props 정의
+const props = defineProps({
+  // 차트 옵션
+  option: {
+    type: Object,
+    required: true
   },
-  tooltip: {
-    trigger: 'axis',
-    axisPointer: {
-      type: 'shadow'
-    }
+  // 로딩 상태
+  loading: {
+    type: Boolean,
+    default: false
   },
-  legend: {
-    data: ['2023년', '2024년'],
-    top: 'bottom',
-    textStyle: {
-      fontSize: 14
-    }
+  // 에러 메시지
+  error: {
+    type: String,
+    default: null
   },
-  grid: {
-    left: '5%',
-    right: '5%',
-    top: '15%',
-    bottom: '15%',
-    containLabel: true
+  // 로딩 텍스트
+  loadingText: {
+    type: String,
+    default: '데이터 로딩 중...'
   },
-  xAxis: {
-    type: 'category',
-    data: [],
-    axisLabel: {
-      fontSize: 14,
-      interval: 0,
-      rotate: 0
-    }
+  // 차트 높이
+  height: {
+    type: String,
+    default: '600px'
   },
-  yAxis: {
-    type: 'value',
-    axisLabel: {
-      fontSize: 14
-    }
+  // 자동 리사이즈
+  autoresize: {
+    type: Boolean,
+    default: true
   },
-  series: [
-    {
-      name: '2023년',
-      type: 'bar',
-      data: [],
-      barWidth: '30%',
-      emphasis: {
-        itemStyle: {
-          shadowBlur: 10,
-          shadowOffsetX: 0,
-          shadowColor: 'rgba(0, 0, 0, 0.5)'
-        }
-      }
-    },
-    {
-      name: '2024년',
-      type: 'bar',
-      data: [],
-      barWidth: '30%',
-      emphasis: {
-        itemStyle: {
-          shadowBlur: 10,
-          shadowOffsetX: 0,
-          shadowColor: 'rgba(0, 0, 0, 0.5)'
-        }
-      }
-    }
-  ]
+  // 컨트롤 영역 표시
+  showControls: {
+    type: Boolean,
+    default: true
+  },
+  // 새로고침 버튼 표시
+  showRefreshButton: {
+    type: Boolean,
+    default: true
+  },
+  // 재시도 버튼 표시
+  showRetryButton: {
+    type: Boolean,
+    default: true
+  },
+  // 새로고침 버튼 텍스트
+  refreshButtonText: {
+    type: String,
+    default: '데이터 새로고침'
+  }
 });
 
-// 데이터 로드 함수 (재시도 로직 포함)
-const loadData = async (isRetry = false) => {
-  if (!isRetry) {
-    loading.value = true;
-    error.value = null;
-  }
+// 이벤트 정의
+const emit = defineEmits(['refresh', 'retry', 'chart-click']);
 
-  try {
-    const data = await window.electronAPI.getSalesData();
+// 차트 옵션 계산
+const chartOption = computed(() => props.option);
 
-    if (data.length > 0) {
-      // 데이터 가공
-      const departments = [...new Set(data.map((item) => item.department))];
-      const years = [...new Set(data.map((item) => item.year))].sort();
-
-      // 각 연도별 데이터 추출
-      const seriesData = years.map((year) => {
-        return {
-          name: `${year}년`,
-          type: 'bar',
-          data: departments.map((dept) => {
-            const item = data.find(
-              (d) => d.department === dept && d.year === year
-            );
-            return item ? item.amount : 0;
-          }),
-          emphasis: {
-            itemStyle: {
-              shadowBlur: 10,
-              shadowOffsetX: 0,
-              shadowColor: 'rgba(0, 0, 0, 0.5)'
-            }
-          }
-        };
-      });
-
-      // 차트 업데이트
-      option.value = {
-        ...option.value,
-        legend: {
-          data: years.map((year) => `${year}년`),
-          top: 'bottom',
-          textStyle: {
-            fontSize: 14
-          }
-        },
-        xAxis: {
-          ...option.value.xAxis,
-          data: departments
-        },
-        series: seriesData
-      };
-
-      retryCount.value = 0; // 성공 시 재시도 카운트 리셋
-    }
-  } catch (err) {
-    console.error('데이터 로드 오류:', err);
-
-    if (retryCount.value < maxRetries) {
-      retryCount.value++;
-      console.log(`재시도 ${retryCount.value}/${maxRetries} 후 3초 후 다시 시도...`);
-      setTimeout(() => loadData(true), 3000);
-      return;
-    } else {
-      error.value = '백엔드 서버 연결에 실패했습니다. 서버가 실행 중인지 확인해주세요.';
-    }
-  } finally {
-    loading.value = false;
-  }
+// 이벤트 핸들러
+const handleRetry = () => {
+  emit('retry');
 };
 
-// 재시도 함수
-const retryLoad = () => {
-  retryCount.value = 0;
-  loadData();
+const handleChartClick = (params) => {
+  emit('chart-click', params);
 };
-
-// 테스트 데이터 생성 함수
-const insertData = async () => {
-  const success = await window.electronAPI.insertTestData();
-  if (success) {
-    await loadData();
-  }
-};
-
-// 컴포넌트 마운트 시 데이터 로드
-onMounted(async () => {
-  await loadData();
-});
 </script>
 
 <style scoped>
@@ -221,7 +150,7 @@ onMounted(async () => {
 
 .chart-container {
   width: 100%;
-  height: 600px;
+  height: v-bind(height);
   position: relative;
   padding: 20px;
 }
@@ -272,8 +201,7 @@ onMounted(async () => {
   border-top: 1px solid #ddd;
 }
 
-.refresh-btn,
-.insert-btn {
+.refresh-btn {
   padding: 10px 20px;
   background-color: #4caf50;
   color: white;
@@ -283,12 +211,7 @@ onMounted(async () => {
   font-size: 14px;
 }
 
-.insert-btn {
-  background-color: #2196f3;
-}
-
-.refresh-btn:hover,
-.insert-btn:hover {
+.refresh-btn:hover {
   opacity: 0.8;
 }
 </style>

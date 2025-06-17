@@ -1,44 +1,55 @@
 <template>
-  <div class="chart-widget">
-    <div class="chart-container">
-      <div v-if="loading" class="loading">데이터 로딩 중...</div>
-      <div v-else-if="error" class="error">
-        {{ error }}
-        <button @click="retryLoad" class="retry-btn">다시 시도</button>
-      </div>
-      <v-chart v-else class="chart" :option="option" autoresize />
+  <div class="q-pa-md">
+    <!-- 페이지 헤더 -->
+    <div class="page-header q-mb-lg">
+      <!-- 브레드크럼 -->
+      <q-breadcrumbs
+        separator=">"
+        class="text-grey-8 q-mb-sm"
+        active-color="primary"
+      >
+        <q-breadcrumbs-el icon="dashboard" label="대시보드" />
+        <q-breadcrumbs-el
+          icon="folder"
+          label="정책 자료실"
+          class="text-weight-medium"
+        />
+      </q-breadcrumbs>
+
+      <!-- 페이지 타이틀 -->
+      <!--      <div class="page-title">
+              <q-icon name="assessment" size="md" class="q-mr-sm text-primary" />
+              <span class="text-h5 text-weight-medium">공지사항</span>
+            </div>-->
     </div>
-    <div class="controls">
-      <button @click="loadData" class="refresh-btn">데이터 새로고침</button>
-      <button @click="insertData" class="insert-btn">테스트 데이터 생성</button>
-      <button @click="toggleView" class="toggle-btn">
-        {{ viewType === 'department' ? '연도별 보기' : '부서별 보기' }}
-      </button>
-      <button @click="changeColorScheme" class="color-btn">색상 변경</button>
-    </div>
+    <chart-component
+      :option="chartOption"
+      :loading="loading"
+      :error="error"
+      :height="'700px'"
+      :show-controls="true"
+      :loading-text="'정책 데이터 로딩 중...'"
+      @refresh="loadData"
+      @retry="retryLoad"
+      @chart-click="handleChartClick"
+    >
+      <template #controls>
+        <button @click="loadData" class="refresh-btn">데이터 새로고침</button>
+        <button @click="insertData" class="insert-btn">
+          테스트 데이터 생성
+        </button>
+        <button @click="toggleView" class="toggle-btn">
+          {{ viewType === 'department' ? '연도별 보기' : '부서별 보기' }}
+        </button>
+        <button @click="changeColorScheme" class="color-btn">색상 변경</button>
+      </template>
+    </chart-component>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { use } from 'echarts/core';
-import { CanvasRenderer } from 'echarts/renderers';
-import { TreemapChart } from 'echarts/charts';
-import {
-  LegendComponent,
-  TitleComponent,
-  TooltipComponent
-} from 'echarts/components';
-import VChart from 'vue-echarts';
-
-// ECharts 컴포넌트 등록
-use([
-  CanvasRenderer,
-  TreemapChart,
-  TooltipComponent,
-  TitleComponent,
-  LegendComponent
-]);
+import ChartComponent from '@/components/charts/ChartComponent.vue';
 
 const loading = ref(true);
 const error = ref(null);
@@ -91,9 +102,9 @@ const colorSchemes = [
   ]
 ];
 
-const option = ref({
+const chartOption = ref({
   title: {
-    text: '부서별 매출 분포',
+    text: '정책 자료실',
     left: 'center',
     textStyle: {
       fontSize: 20,
@@ -126,12 +137,12 @@ const option = ref({
       name: '매출 분포',
       type: 'treemap',
       width: '90%',
-      height: '80%',
+      height: '85%',
       top: '10%',
       roam: false,
       nodeClick: 'zoomToNode',
       breadcrumb: {
-        show: true,
+        show: false,
         height: 30,
         bottom: 'bottom'
       },
@@ -202,6 +213,8 @@ const option = ref({
   ]
 });
 
+let rawData = [];
+
 // 색상 스키마 변경
 const changeColorScheme = () => {
   colorScheme.value = (colorScheme.value + 1) % colorSchemes.length;
@@ -211,10 +224,10 @@ const changeColorScheme = () => {
 // 차트 색상 업데이트
 const updateChartColors = () => {
   const currentColors = colorSchemes[colorScheme.value];
-  option.value.color = currentColors;
+  chartOption.value.color = currentColors;
 
-  option.value.series[0].levels[1] = {
-    ...option.value.series[0].levels[1],
+  chartOption.value.series[0].levels[1] = {
+    ...chartOption.value.series[0].levels[1],
     color: currentColors,
     colorSaturation: [0.3, 0.8]
   };
@@ -223,12 +236,10 @@ const updateChartColors = () => {
 // 보기 타입 토글
 const toggleView = () => {
   viewType.value = viewType.value === 'department' ? 'year' : 'department';
-  if (option.value.series[0].data.length > 0) {
+  if (chartOption.value.series[0].data.length > 0) {
     processData();
   }
 };
-
-let rawData = [];
 
 // 데이터 처리 함수
 const processData = () => {
@@ -238,7 +249,7 @@ const processData = () => {
   let title = '';
 
   if (viewType.value === 'department') {
-    title = '부서별 매출 분포';
+    title = '정책 자료실';
     // 부서별로 그룹화
     const departmentMap = {};
     rawData.forEach((item) => {
@@ -267,7 +278,7 @@ const processData = () => {
       };
     });
   } else {
-    title = '연도별 매출 분포';
+    title = '정책 자료실';
     // 연도별로 그룹화
     const yearMap = {};
     rawData.forEach((item) => {
@@ -299,15 +310,15 @@ const processData = () => {
       });
   }
 
-  option.value = {
-    ...option.value,
+  chartOption.value = {
+    ...chartOption.value,
     title: {
-      ...option.value.title,
+      ...chartOption.value.title,
       text: title
     },
     series: [
       {
-        ...option.value.series[0],
+        ...chartOption.value.series[0],
         data: processedData
       }
     ]
@@ -386,6 +397,12 @@ const insertData = async () => {
   }
 };
 
+// 차트 클릭 핸들러
+const handleChartClick = (params) => {
+  console.log('Treemap 차트 클릭:', params);
+  // 특정 영역 클릭 시 상세 정보 표시 등의 기능 구현 가능
+};
+
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
   await loadData();
@@ -393,106 +410,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.chart-widget {
-  margin-bottom: 20px;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  width: 100%;
-}
-
-.chart-container {
-  width: 100%;
-  height: 700px;
-  position: relative;
-  padding: 20px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-.loading {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 18px;
-  color: #666;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.loading::before {
-  content: '';
-  width: 24px;
-  height: 24px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.error {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: #e74c3c;
-  font-size: 16px;
-  padding: 30px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  border: 2px solid #e74c3c;
-}
-
-.retry-btn {
-  margin-top: 15px;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.retry-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
-}
-
-.chart {
-  width: 100%;
-  height: 100%;
-}
-
-.controls {
-  display: flex;
-  gap: 15px;
-  padding: 25px;
-  background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-  border-top: 1px solid #ddd;
-  flex-wrap: wrap;
-}
-
 .refresh-btn,
 .insert-btn,
 .toggle-btn,

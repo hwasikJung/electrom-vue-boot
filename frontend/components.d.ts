@@ -21,5 +21,9 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SalesList: typeof import('./src/components/SalesList.vue')['default']
+    TableBasicCompoment: typeof import('./src/components/TableBasicCompoment.vue')['default']
+    TableBasicComponent: typeof import('./src/components/table/TableBasicComponent.vue')['default']
+    TableComponent: typeof import('./src/components/table/TableComponent.vue')['default']
+    UseInfoComponent: typeof import('./src/modules/dashboard/views/component/UseInfoComponent.vue')['default']
   }
 }

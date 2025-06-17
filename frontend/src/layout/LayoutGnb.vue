@@ -129,7 +129,10 @@ const isActiveMenu = (menuType) => {
 
   switch (menuType) {
     case 'dashboard':
-      return currentPath.value === '/';
+      return (
+        currentPath.value === '/dashboard' ||
+        currentPath.value.startsWith('/dashboard/')
+      );
     case 'data-provider':
       return currentPath.value.includes('data-provider');
     case 'new-industry':

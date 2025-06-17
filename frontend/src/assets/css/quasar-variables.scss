@@ -1,0 +1,51 @@
+$standard: #578442;
+$primary: #247F00;
+$secondary: #26535E;
+
+$cancel: #969696;
+$delete: #F44336;
+$inquiry: #4CA2A5;
+
+$white: #FFFFFF;
+$black: #000000;
+
+$bacground-grey-1: #EEEEEE;
+$bacground-grey-2: #EAEAEA;
+
+$positive: #21BA45;
+$negative: #FF0000;
+$info: #31CCEC;
+$warning: #F2C037;
+
+// 폰트 패밀리 변수
+$font-family-dotum: 'KoPubWorld Dotum', 'Malgun Gothic', '맑은 고딕', sans-serif;
+$font-family-primary: $font-family-dotum;
+
+// 폰트 웨이트 변수
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+// 폰트 사이즈 변수
+$font-size-xs: 10px;
+$font-size-sm: 12px;
+$font-size-md: 14px;
+$font-size-lg: 16px;
+$font-size-xl: 18px;
+$font-size-2xl: 20px;
+$font-size-3xl: 24px;
+$font-size-4xl: 28px;
+$font-size-5xl: 32px;
+
+// 라인 하이트 변수
+$line-height-tight: 1.2;
+$line-height-normal: 1.4;
+$line-height-relaxed: 1.6;
+$line-height-loose: 1.8;
+
+// 레터 스페이싱 변수
+$letter-spacing-tight: -0.025em;
+$letter-spacing-normal: 0;
+$letter-spacing-wide: 0.025em;
+$letter-spacing-wider: 0.05em;

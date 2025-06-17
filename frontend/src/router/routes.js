@@ -1,9 +1,13 @@
+import dashboardRoutes from '@/router/modules/dashboard.js';
+
 const routes = [
   {
     path: '/',
     name: 'mainPage',
-    component: () => import('/src/modules/dashboard/views/DashBoard.vue')
-  }
+    component: () => import('@/modules/main/mainView.vue')
+  },
+
+  ...dashboardRoutes
 ];
 
 export default routes;

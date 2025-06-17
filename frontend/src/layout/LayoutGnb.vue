@@ -41,6 +41,9 @@
 </template>
 
 <script setup>
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
 import GnbDropdownMenu from './components/GnbDropdownMenu.vue';
 import GnbSimpleMenu from './components/GnbSimpleMenu.vue';
 
@@ -50,37 +53,37 @@ const route = useRoute();
 defineProps({
   isLoggedIn: {
     type: Boolean,
-    required: true,
+    required: true
   },
   userRoles: {
     type: Array,
-    required: true,
-  },
+    required: true
+  }
 });
 
 const isMobile = ref(false);
 const openMobileMenu = ref(null);
 
 const dashboardItems = [
-  { path: '/dashboard/current', label: '데이터연계 현황' },
-  { path: '/dashboard/usage', label: '이용안내' },
+  { path: '/dashboard/data-link', label: '데이터연계 현황' },
+  { path: '/dashboard/use-info', label: '이용안내' },
   { path: '/dashboard/notice', label: '공지사항' },
-  { path: '/dashboard/materials', label: '정책 자료실' },
+  { path: '/dashboard/policy', label: '정책 자료실' }
 ];
 
 const menuConfig = {
   dashboard: {
     type: 'dropdown',
-    hasSubMenu: true,
+    hasSubMenu: true
   },
   'data-provider': {
     type: 'simple',
-    redirectPath: '/data-provider',
+    redirectPath: '/data-provider'
   },
   'new-industry': {
     type: 'simple',
-    redirectPath: '/new-industry',
-  },
+    redirectPath: '/new-industry'
+  }
 };
 
 const currentPath = computed(() => route.fullPath);
@@ -143,7 +146,7 @@ const goToLogin = (targetPath) => {
 
   router.push({
     path: '/user/login',
-    query: { redirect: targetPath },
+    query: { redirect: targetPath }
   });
 };
 

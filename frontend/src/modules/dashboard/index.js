@@ -5,6 +5,6 @@ export * from './api/dashboardApi.js';
 export * from './store/dashboardStore.js';
 
 // view
-export { default as DashBoard } from './views/DashBoard.vue';
+export { default as DashboardMain } from './views/DashboardMain.vue';
 
 // components

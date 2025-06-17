@@ -2,7 +2,11 @@
   <header class="layout-header">
     <div class="layout-header">
       <div class="header-container">
-        <img class="logo-image" src="/src/assets/images/logo/logo.png" />
+        <img
+          class="logo-image"
+          src="/src/assets/images/logo/logo.png"
+          @click="handleTitleClick"
+          alt="logo" />
 
         <div class="header-right">
           <q-tabs align="left">
@@ -16,7 +20,15 @@
   </header>
 </template>
 
-<script setup></script>
+<script setup>
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const handleTitleClick = () => {
+  router.push('/');
+};
+</script>
 
 <style lang="scss" scoped>
 .layout-header {

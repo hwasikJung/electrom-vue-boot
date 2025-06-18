@@ -188,10 +188,10 @@ const retryLoad = () => {
 
 // 테스트 데이터 생성 함수
 const insertData = async () => {
-  const success = await window.electronAPI.insertTestData();
-  if (success) {
-    await loadData();
-  }
+  // const success = await window.electronAPI.insertSalesData();
+  // if (success) {
+  //   await loadData();
+  // }
 };
 
 // 차트 클릭 핸들러

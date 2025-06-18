@@ -16,46 +16,58 @@ export default defineConfig({
     quasar({
       sassVariables: fileURLToPath(
         new URL('src/assets/css/quasar-variables.scss', import.meta.url)
-      )
+      ),
+      plugins: ['Dialog', 'Notify'] // Dialog 플러그인 추가
     }),
-    electron({
-      entry: 'electron/index.js',
-      // 중요: pg 모듈을 external로 설정
-      external: ['pg', 'sequelize', 'pg-hstore'],
-      // 추가 설정
-      vite: {
-        build: {
-          rollupOptions: {
-            external: ['pg', 'sequelize', 'pg-hstore']
+    electron([
+      {
+        // 메인 프로세스 설정
+        entry: 'electron/index.js',
+        vite: {
+          build: {
+            rollupOptions: {
+              external: ['pg', 'sequelize', 'pg-hstore']
+            }
+          }
+        }
+      },
+      {
+        // Preload 스크립트 설정
+        entry: 'electron/preload.js',
+        onstart: () => {
+          // preload 스크립트가 빌드될 때 알림
+          console.log('[vite:electron] Preload script built');
+        },
+        vite: {
+          build: {
+            sourcemap: 'inline',
+            outDir: 'dist-electron'
           }
         }
       }
-    }),
+    ]),
     // Vue Composition API 함수들 자동 임포트
     AutoImport({
       imports: ['vue', 'vue-router', '@vueuse/core', 'quasar'],
-      dts: true, // 타입 정의 파일 생성
+      dts: true,
       eslintrc: {
-        enabled: true, // ESLint 설정 파일 생성
+        enabled: true,
         filepath: '.eslintrc-auto-import.json',
         globalsPropValue: true
       }
     }),
     // Vue 컴포넌트들 자동 임포트
     Components({
-      resolvers: [
-        QuasarResolver() // Quasar 컴포넌트 자동 임포트
-      ],
+      resolvers: [QuasarResolver()],
       dirs: [
-        'src/components', // 기본 컴포넌트 디렉터리
-        'src/layout/components', // 레이아웃 컴포넌트
-        'src/shared/components', // 공유 컴포넌트
-        'src/modules/**/components', // 모듈별 컴포넌트
-        'src/modules/**/views' // 모듈별 페이지 컴포넌트
+        'src/components',
+        'src/layout/components',
+        'src/shared/components',
+        'src/modules/**/components',
+        'src/modules/**/views'
       ],
-      dts: true // 타입 정의 파일 생성
+      dts: true
     }),
-
     renderer()
   ],
   resolve: {

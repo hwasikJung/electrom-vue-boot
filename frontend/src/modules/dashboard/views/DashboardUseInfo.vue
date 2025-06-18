@@ -15,12 +15,6 @@
           class="text-weight-medium"
         />
       </q-breadcrumbs>
-
-      <!-- 페이지 타이틀 -->
-      <!--      <div class="page-title">
-              <q-icon name="assessment" size="md" class="q-mr-sm text-primary" />
-              <span class="text-h5 text-weight-medium">이용안내</span>
-            </div>-->
     </div>
 
     <table-component
@@ -93,12 +87,19 @@ import { onMounted, ref } from 'vue';
 import TableComponent from '@/components/table/TableComponent.vue';
 import UseInfoComponent from '@/modules/dashboard/views/component/UseInfoComponent.vue';
 
+import { useDialog } from '@/shared/composables/useDialog.js';
+import { useNotify } from '@/shared/composables/useNotify.js';
+
 const salesList = ref([]);
 const loading = ref(true);
 const error = ref(null);
 const formDialog = ref(false);
 const currentItem = ref(null);
 const isEdit = ref(false);
+
+// Composables
+const dialog = useDialog();
+const notify = useNotify();
 
 // 테이블 컬럼 정의
 const columns = [
@@ -148,6 +149,7 @@ const fetchSalesList = async () => {
   } catch (err) {
     error.value = err.message || '데이터를 가져오는데 문제가 발생했습니다.';
     console.error('매출 데이터 로딩 실패:', err);
+    notify.error('데이터를 가져오는데 문제가 발생했습니다.');
   } finally {
     loading.value = false;
   }
@@ -162,6 +164,13 @@ const openAddDialog = () => {
 
 // 수정 다이얼로그 열기
 const openEditDialog = (item) => {
+  console.log('수정할 항목:', item);
+
+  if (!item || !item.id) {
+    notify.error('수정할 항목을 찾을 수 없습니다.');
+    return;
+  }
+
   currentItem.value = { ...item };
   isEdit.value = true;
   formDialog.value = true;
@@ -171,45 +180,125 @@ const openEditDialog = (item) => {
 const saveSales = async (salesData) => {
   try {
     if (isEdit.value) {
-      await window.electronAPI.updateSales(salesData);
+      // 수정 모드
+      if (!salesData.id) {
+        throw new Error('수정할 항목의 ID가 없습니다.');
+      }
+
+      console.log('수정 데이터:', salesData);
+      await window.electronAPI.updateSalesData(salesData);
+      notify.success('매출 데이터가 성공적으로 수정되었습니다.');
     } else {
-      await window.electronAPI.createSales(salesData);
+      // 추가 모드
+      console.log('추가 데이터:', salesData);
+      await window.electronAPI.insertSalesData(salesData);
+      notify.success('매출 데이터가 성공적으로 등록되었습니다.');
     }
+
     formDialog.value = false;
+    currentItem.value = null;
     await fetchSalesList();
   } catch (err) {
-    error.value = '저장 중 오류가 발생했습니다.';
+    error.value = isEdit.value
+      ? '수정 중 오류가 발생했습니다.'
+      : '저장 중 오류가 발생했습니다.';
     console.error('매출 데이터 저장 실패:', err);
+    notify.error(
+      err.message ||
+        (isEdit.value
+          ? '수정 중 오류가 발생했습니다.'
+          : '저장 중 오류가 발생했습니다.')
+    );
   }
 };
 
 // 매출 데이터 삭제
 const deleteSales = async (item) => {
+  console.log('삭제할 항목:', item);
+
+  if (!item || !item.id) {
+    notify.error('삭제할 항목을 찾을 수 없습니다.');
+    return;
+  }
+
+  const confirmed = await dialog.confirm({
+    title: '삭제 확인',
+    message: `정말로 ${item.department}의 매출 데이터를 삭제하시겠습니까?`,
+    color: 'negative',
+    okLabel: '삭제',
+    cancelLabel: '취소'
+  });
+
+  if (!confirmed) return;
+
   try {
-    await window.electronAPI.deleteSales(item.id);
+    const ids = [item.id];
+
+    await window.electronAPI.bulkDeleteSales(ids);
     await fetchSalesList();
+    notify.success('매출 데이터가 성공적으로 삭제되었습니다.');
   } catch (err) {
     error.value = '삭제 중 오류가 발생했습니다.';
     console.error('매출 데이터 삭제 실패:', err);
+    notify.error('삭제 중 오류가 발생했습니다.');
   }
 };
 
 // 대량 삭제
 const bulkDeleteSales = async (items) => {
+  if (!items || items.length === 0) {
+    notify.error('삭제할 항목을 선택해주세요.');
+    return;
+  }
+
+  const confirmed = await dialog.confirm({
+    title: '삭제 확인',
+    message: `선택한 ${items.length}개의 매출 데이터를 모두 삭제하시겠습니까?`,
+    color: 'negative',
+    okLabel: '삭제',
+    cancelLabel: '취소'
+  });
+
+  if (!confirmed) return;
+
   try {
-    const ids = items.map((item) => item.id);
+    const ids = items.map((item) => item.id).filter((id) => id);
+    if (ids.length === 0) {
+      throw new Error('유효한 ID가 없습니다.');
+    }
+
     await window.electronAPI.bulkDeleteSales(ids);
     await fetchSalesList();
+    notify.success(
+      `${ids.length}개의 매출 데이터가 성공적으로 삭제되었습니다.`
+    );
   } catch (err) {
     error.value = '대량 삭제 중 오류가 발생했습니다.';
     console.error('매출 데이터 대량 삭제 실패:', err);
+    notify.error('대량 삭제 중 오류가 발생했습니다.');
   }
 };
 
 // Excel 내보내기
-const exportToExcel = () => {
-  // Excel 내보내기 로직
-  console.log('Excel 내보내기');
+const exportToExcel = async () => {
+  const confirmed = await dialog.confirm({
+    title: 'Excel 내보내기',
+    message: '현재 데이터를 Excel 파일로 내보내시겠습니까?',
+    color: 'positive',
+    okLabel: '내보내기',
+    cancelLabel: '취소'
+  });
+
+  if (!confirmed) return;
+
+  try {
+    // Excel 내보내기 로직
+    console.log('Excel 내보내기', salesList.value);
+    notify.success('Excel 파일이 성공적으로 내보내졌습니다.');
+  } catch (err) {
+    console.error('Excel 내보내기 실패:', err);
+    notify.error('Excel 내보내기 중 오류가 발생했습니다.');
+  }
 };
 
 // 유틸리티 함수들
@@ -243,4 +332,5 @@ const getDepartmentIcon = (department) => {
 
 onMounted(fetchSalesList);
 </script>
+
 <style scoped></style>

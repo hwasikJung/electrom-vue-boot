@@ -33,7 +33,7 @@
       @retry="retryLoad"
       @chart-click="handleChartClick"
     >
-      <template #controls>
+      <!--      <template #controls>
         <button @click="loadData" class="refresh-btn">데이터 새로고침</button>
         <button @click="insertData" class="insert-btn">
           테스트 데이터 생성
@@ -42,7 +42,7 @@
           {{ viewType === 'department' ? '연도별 보기' : '부서별 보기' }}
         </button>
         <button @click="changeColorScheme" class="color-btn">색상 변경</button>
-      </template>
+      </template>-->
     </chart-component>
   </div>
 </template>
@@ -390,12 +390,12 @@ const retryLoad = () => {
 };
 
 // 테스트 데이터 생성 함수
-const insertData = async () => {
-  const success = await window.electronAPI.insertTestData();
-  if (success) {
-    await loadData();
-  }
-};
+// const insertData = async () => {
+//   const success = await window.electronAPI.insertSalesData();
+//   if (success) {
+//     await loadData();
+//   }
+// };
 
 // 차트 클릭 핸들러
 const handleChartClick = (params) => {

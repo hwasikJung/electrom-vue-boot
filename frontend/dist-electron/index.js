@@ -8876,12 +8876,30 @@ ipcMain.handle("get-sales-data", async () => {
     return [];
   }
 });
-ipcMain.handle("insert-test-data", async () => {
+ipcMain.handle("insert-sales-data", async (event, salesData) => {
   try {
-    const response = await apiClient.post("/test/insert-test-data");
+    const response = await apiClient.post("/test/insert-sales-data", salesData);
     return response.data && response.data.status === "OK";
   } catch (err) {
     console.error("테스트 데이터 삽입 오류:", err);
+    return false;
+  }
+});
+ipcMain.handle("bulk-delete-sales-data", async (event, ids) => {
+  try {
+    const response = await apiClient.post("/test/bulk-delete-sales-data", ids);
+    return response.data && response.data.status === "OK";
+  } catch (err) {
+    console.error("다중 삭제 오류:", err);
+    return false;
+  }
+});
+ipcMain.handle("update-sales-data", async (event, salesData) => {
+  try {
+    const response = await apiClient.post("/test/update-sales-data", salesData);
+    return response.data && response.data.status === "OK";
+  } catch (err) {
+    console.error("판매 데이터 업데이트 오류:", err);
     return false;
   }
 });

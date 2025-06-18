@@ -23,7 +23,7 @@
 
     <q-table
       :rows="rows"
-      :columns="columns"
+      :columns="columnsWithActions"
       :loading="loading"
       :row-key="rowKey"
       flat
@@ -48,36 +48,38 @@
         </div>
       </template>
 
-      <!-- 액션 컬럼 -->
-      <template v-slot:body-cell-actions="props" v-if="showRowActions">
+      <!-- 액션 컬럼 (수정됨) -->
+      <template v-slot:body-cell-actions="props">
         <q-td :props="props">
-          <q-btn
-            flat
-            round
-            color="blue"
-            icon="edit"
-            size="sm"
-            @click="$emit('edit', props.row)"
-            class="q-mr-xs"
-          >
-            <q-tooltip>수정</q-tooltip>
-          </q-btn>
-          <q-btn
-            flat
-            round
-            color="red"
-            icon="delete"
-            size="sm"
-            @click="confirmDelete(props.row)"
-          >
-            <q-tooltip>삭제</q-tooltip>
-          </q-btn>
+          <div class="q-gutter-xs">
+            <q-btn
+              flat
+              round
+              color="blue"
+              icon="edit"
+              size="sm"
+              @click="handleEdit(props.row)"
+              class="q-mr-xs"
+            >
+              <q-tooltip>수정</q-tooltip>
+            </q-btn>
+            <q-btn
+              flat
+              round
+              color="red"
+              icon="delete"
+              size="sm"
+              @click="confirmDelete(props.row)"
+            >
+              <q-tooltip>삭제</q-tooltip>
+            </q-btn>
+          </div>
         </q-td>
       </template>
 
-      <!-- 동적 슬롯 -->
+      <!-- 동적 슬롯 (actions 슬롯 제외) -->
       <template
-        v-for="(_, slotName) in $slots"
+        v-for="(_, slotName) in filteredSlots"
         :key="slotName"
         v-slot:[slotName]="slotProps"
       >
@@ -259,6 +261,12 @@ const deleteDialog = ref(false);
 const bulkDeleteDialog = ref(false);
 const itemToDelete = ref(null);
 
+// 수정 처리 (추가됨)
+const handleEdit = (row) => {
+  console.log('수정 버튼 클릭:', row);
+  emit('edit', row);
+};
+
 // 삭제 확인
 const confirmDelete = (row) => {
   itemToDelete.value = row;
@@ -295,9 +303,17 @@ const columnsWithActions = computed(() => {
       name: 'actions',
       label: '작업',
       align: 'center',
-      sortable: false
+      sortable: false,
+      style: 'width: 120px'
     }
   ];
+});
+
+// 슬롯 필터링 (actions 슬롯 제외)
+const filteredSlots = computed(() => {
+  const slots = { ...props.$slots };
+  delete slots.actions; // actions 슬롯은 따로 처리하므로 제외
+  return slots;
 });
 </script>
 

@@ -4,10 +4,31 @@
 
     <!-- 테스트용 데이터 조회 -->
     <select id="findAll" resultType="com.sqisoft.gr.modules.test.dto.TestDto">
-        SELECT department, amount, year
+        SELECT department, amount, year, id
         FROM test_sales
     </select>
 
     <!-- 테스트용 데이터 저장 -->
+    <insert id="insertSalesData">
+        INSERT INTO test_sales (department, amount, year)
+        VALUES (#{department}, #{amount}, #{year})
+    </insert>
 
+    <!-- 테스트용 데이터 삭제 -->
+    <delete id="bulkDeleteSalesData" parameterType="java.util.List">
+        DELETE FROM test_sales
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 테스트용 데이터 수정 -->
+    <update id="updateSalesData">
+        UPDATE test_sales
+        SET department = #{department},
+            amount     = #{amount},
+            year       = #{year}
+        WHERE id = #{id}
+    </update>
 </mapper>

@@ -8,4 +8,6 @@ public class TestDto {
 	private String department;
 	private Integer amount;
 	private Integer year;
+	private Integer id;
+
 }

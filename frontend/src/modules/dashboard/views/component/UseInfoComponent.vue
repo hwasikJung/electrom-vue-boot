@@ -5,10 +5,14 @@
         <div class="text-h6">
           {{ isEdit ? '매출 수정' : '매출 추가' }}
         </div>
+        <!-- 수정 모드일 때 ID 표시 -->
+        <div v-if="isEdit && form.id" class="text-caption text-grey-6">
+          ID: {{ form.id }}
+        </div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-        <q-form @submit="onSubmit" class="q-gutter-md">
+        <q-form @submit="onSubmit" class="q-gutter-md" ref="formRef">
           <q-select
             v-model="form.department"
             :options="departmentOptions"
@@ -48,6 +52,11 @@
             outlined
             rows="3"
           />
+
+          <!-- 수정 모드일 때 추가 정보 표시 -->
+          <div v-if="isEdit && form.createdAt" class="text-caption text-grey-6">
+            생성일: {{ formatDate(form.createdAt) }}
+          </div>
         </q-form>
       </q-card-section>
 
@@ -58,6 +67,7 @@
           :label="isEdit ? '수정' : '저장'"
           type="submit"
           @click="onSubmit"
+          :loading="loading"
         />
       </q-card-actions>
     </q-card>
@@ -80,11 +90,16 @@ const dialog = computed({
   set: (val) => emit('update:modelValue', val)
 });
 
+const formRef = ref(null);
+const loading = ref(false);
+
 const form = ref({
+  id: null,
   department: '',
   amount: null,
   year: new Date().getFullYear(),
-  description: ''
+  description: '',
+  createdAt: null
 });
 
 const departmentOptions = [
@@ -100,10 +115,12 @@ const departmentOptions = [
 // 폼 초기화
 const resetForm = () => {
   form.value = {
+    id: null,
     department: '',
     amount: null,
     year: new Date().getFullYear(),
-    description: ''
+    description: '',
+    createdAt: null
   };
 };
 
@@ -111,8 +128,14 @@ const resetForm = () => {
 watch(
   () => props.item,
   (newItem) => {
-    if (newItem) {
-      form.value = { ...newItem };
+    if (newItem && props.isEdit) {
+      // 수정 모드일 때 모든 데이터 복사
+      form.value = {
+        ...newItem,
+        // 숫자형 필드는 확실히 숫자로 변환
+        amount: Number(newItem.amount),
+        year: Number(newItem.year)
+      };
     } else {
       resetForm();
     }
@@ -124,20 +147,41 @@ watch(
 watch(dialog, (newVal) => {
   if (!newVal) {
     resetForm();
+    loading.value = false;
   }
 });
 
 // 폼 제출
-const onSubmit = () => {
-  const formData = { ...form.value };
-  if (props.isEdit && props.item?.id) {
-    formData.id = props.item.id;
+const onSubmit = async () => {
+  // 폼 유효성 검사
+  const isValid = await formRef.value?.validate();
+  if (!isValid) return;
+
+  loading.value = true;
+
+  try {
+    const formData = { ...form.value };
+
+    // 수정 모드일 때 ID가 있는지 확인
+    if (props.isEdit && !formData.id) {
+      throw new Error('수정할 항목의 ID가 없습니다.');
+    }
+
+    emit('save', formData);
+  } catch (error) {
+    console.error('폼 제출 오류:', error);
+    loading.value = false;
   }
-  emit('save', formData);
 };
 
 // 다이얼로그 닫기
 const closeDialog = () => {
   dialog.value = false;
+};
+
+// 날짜 포맷팅
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  return new Date(dateString).toLocaleDateString('ko-KR');
 };
 </script>

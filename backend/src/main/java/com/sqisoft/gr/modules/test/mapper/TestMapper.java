@@ -9,4 +9,11 @@ import com.sqisoft.gr.modules.test.dto.TestDto;
 @Mapper
 public interface TestMapper {
 	List<TestDto> findAll();
+
+	void insertSalesData(TestDto testDto);
+
+	void bulkDeleteSalesData(List<Long> validIds);
+
+	void updateSalesData(TestDto testDto);
+
 }

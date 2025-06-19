@@ -80,7 +80,7 @@
     ],
     "extraFiles": [
       {
-        "from": "../out",
+        "from": "dist-electron",
         "to": ".",
         "filter": [
           "**/*"

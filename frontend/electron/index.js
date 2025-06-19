@@ -3,12 +3,14 @@ import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import axios from 'axios';
+import { spawn } from 'child_process';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // .env 파일 로드
-config({ path: path.join(__dirname, '../.env') });
+config({ path: path.join(__dirname, '../../.env') });
 
 // API 클라이언트 설정
 const apiClient = axios.create({
@@ -34,11 +36,8 @@ ipcMain.handle('get-sales-data', async () => {
   }
 });
 
-// 테스트 데이터 삽입 기능은 이제 Spring Boot 백엔드에서 처리해야 합니다.
-// 필요한 경우 Spring Boot API 호출로 변경
 ipcMain.handle('insert-sales-data', async (event, salesData) => {
   try {
-    // Spring Boot API를 호출하여 테스트 데이터 삽입 요청
     const response = await apiClient.post('/test/insert-sales-data', salesData);
     return response.data && response.data.status === 'OK';
   } catch (err) {
@@ -49,7 +48,6 @@ ipcMain.handle('insert-sales-data', async (event, salesData) => {
 
 ipcMain.handle('bulk-delete-sales-data', async (event, ids) => {
   try {
-    // Spring Boot API를 호출하여 다중 삭제 요청
     const response = await apiClient.post('/test/bulk-delete-sales-data', ids);
     return response.data && response.data.status === 'OK';
   } catch (err) {
@@ -60,7 +58,6 @@ ipcMain.handle('bulk-delete-sales-data', async (event, ids) => {
 
 ipcMain.handle('update-sales-data', async (event, salesData) => {
   try {
-    // Spring Boot API를 호출하여 판매 데이터 업데이트 요청
     const response = await apiClient.post('/test/update-sales-data', salesData);
     return response.data && response.data.status === 'OK';
   } catch (err) {
@@ -69,32 +66,28 @@ ipcMain.handle('update-sales-data', async (event, salesData) => {
   }
 });
 
-// 상대 경로를 절대 경로로 변경
+// 아이콘 경로 수정
 const iconPath = path.join(__dirname, '../src/assets/icons/app-icon.ico');
 
-// 창 상태 유지 (선택사항)
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 1920,
     height: 1080,
-    // frame: false, // 기본 창 프레임 제거
-    // titleBarStyle: 'hidden', // 타이틀바 숨기기
     icon: iconPath,
-
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.js'), // 같은 폴더에 있음
       webSecurity: true,
       allowRunningInsecureContent: false
     }
   });
+
   const template = [];
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 
-  // 개발 모드에서는 로컬 개발 서버에서 로드
   if (process.env.NODE_ENV === 'development') {
     const devUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:4242';
     console.log('dev URL:', devUrl);
@@ -119,7 +112,51 @@ const createWindow = () => {
   });
 };
 
+let backendProcess = null;
+
+function startBackendServer() {
+  let jarPath;
+
+  if (app.isPackaged) {
+    jarPath = path.join(
+      process.resourcesPath,
+      'backend',
+      'GR-0.0.1-SNAPSHOT.jar'
+    );
+  } else {
+    jarPath = path.join(
+      __dirname,
+      '../../backend/build/libs/GR-0.0.1-SNAPSHOT.jar'
+    );
+  }
+
+  console.log('JAR Path:', jarPath);
+
+  if (!fs.existsSync(jarPath)) {
+    console.error('JAR file not found:', jarPath);
+    return;
+  }
+
+  backendProcess = spawn('java', ['-jar', jarPath], {
+    detached: false,
+    stdio: 'pipe'
+  });
+
+  backendProcess.stdout.on('data', (data) => {
+    console.log(`Backend: ${data}`);
+  });
+
+  backendProcess.stderr.on('data', (data) => {
+    console.error(`Backend Error: ${data}`);
+  });
+
+  backendProcess.on('close', (code) => {
+    console.log(`Backend process exited with code ${code}`);
+  });
+}
+
 app.whenReady().then(async () => {
+  startBackendServer();
   createWindow();
 
   app.on('activate', () => {
@@ -151,4 +188,10 @@ ipcMain.on('maximize-window', () => {
 
 ipcMain.on('close-window', () => {
   BrowserWindow.getFocusedWindow()?.close();
+});
+
+app.on('before-quit', () => {
+  if (backendProcess) {
+    backendProcess.kill();
+  }
 });

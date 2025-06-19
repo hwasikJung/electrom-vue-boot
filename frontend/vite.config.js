@@ -17,36 +17,39 @@ export default defineConfig({
       sassVariables: fileURLToPath(
         new URL('src/assets/css/quasar-variables.scss', import.meta.url)
       ),
-      plugins: ['Dialog', 'Notify'] // Dialog 플러그인 추가
+      plugins: ['Dialog', 'Notify']
     }),
     electron([
       {
-        // 메인 프로세스 설정
         entry: 'electron/index.js',
         vite: {
           build: {
+            outDir: 'dist-electron',
             rollupOptions: {
-              external: ['pg', 'sequelize', 'pg-hstore']
+              external: [
+                'pg',
+                'sequelize',
+                'pg-hstore',
+                'fs',
+                'path',
+                'child_process'
+              ]
             }
           }
         }
       },
       {
-        // Preload 스크립트 설정
         entry: 'electron/preload.js',
         onstart: () => {
-          // preload 스크립트가 빌드될 때 알림
           console.log('[vite:electron] Preload script built');
         },
         vite: {
           build: {
-            sourcemap: 'inline',
             outDir: 'dist-electron'
           }
         }
       }
     ]),
-    // Vue Composition API 함수들 자동 임포트
     AutoImport({
       imports: ['vue', 'vue-router', '@vueuse/core', 'quasar'],
       dts: true,
@@ -56,7 +59,6 @@ export default defineConfig({
         globalsPropValue: true
       }
     }),
-    // Vue 컴포넌트들 자동 임포트
     Components({
       resolvers: [QuasarResolver()],
       dirs: [

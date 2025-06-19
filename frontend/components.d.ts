@@ -8,24 +8,15 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    ButtonArea: typeof import('./src/shared/components/ButtonArea.vue')['default']
     ChartComponent: typeof import('./src/components/charts/ChartComponent.vue')['default']
-    Dashboard: typeof import('@/modules/dashboard/views/DashboardMain.vue')['default']
     DashboardDataLink: typeof import('./src/modules/dashboard/views/DashboardDataLink.vue')['default']
-    DashboardMain: typeof import('./src/modules/dashboard/views/DashboardMain.vue')['default']
     DashboardNotice: typeof import('./src/modules/dashboard/views/DashboardNotice.vue')['default']
     DashboardPolicy: typeof import('./src/modules/dashboard/views/DashboardPolicy.vue')['default']
     DashboardUseInfo: typeof import('./src/modules/dashboard/views/DashboardUseInfo.vue')['default']
     GnbDropdownMenu: typeof import('./src/layout/components/GnbDropdownMenu.vue')['default']
     GnbSimpleMenu: typeof import('./src/layout/components/GnbSimpleMenu.vue')['default']
-    LineChartComponent: typeof import('./src/components/charts/LineChartComponent.vue')['default']
-    Pagination: typeof import('./src/shared/components/Pagination.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SalesList: typeof import('./src/components/SalesList.vue')['default']
-    SearchBar: typeof import('./src/shared/components/SearchBar.vue')['default']
-    TableBasicCompoment: typeof import('./src/components/TableBasicCompoment.vue')['default']
-    TableBasicComponent: typeof import('./src/components/table/TableBasicComponent.vue')['default']
     TableComponent: typeof import('./src/components/table/TableComponent.vue')['default']
     UseInfoComponent: typeof import('./src/modules/dashboard/views/component/UseInfoComponent.vue')['default']
   }

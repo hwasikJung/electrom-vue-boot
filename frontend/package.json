@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "main": "dist-electron/index.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -10,7 +11,7 @@
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
     "electron:dev": "concurrently \"npm run backend:dev\" \"vite --mode development\"",
-    "electron:build": "vite build && electron-builder",
+    "electron:build": "npm run build && electron-builder",
     "backend:dev": "cd ../backend && .\\gradlew.bat bootRun",
     "gradle:run": "cross-env NODE_ENV=development gradlew.bat bootRun",
     "gradle:bootrun": "gradlew.bat bootRun",
@@ -59,16 +60,36 @@
     "unplugin-auto-import": "^19.3.0",
     "unplugin-vue-components": "^28.7.0"
   },
-  "main": "dist-electron/index.js",
   "build": {
-    "appId": "com.yourapp.id",
-    "productName": "DataNet Potal",
+    "appId": "com.yourcompany.datanet-portal",
+    "productName": "DataNet Portal",
     "directories": {
       "output": "dist_electron"
     },
     "files": [
       "dist/**/*",
       "dist-electron/**/*"
-    ]
+    ],
+    "extraFiles": [
+      {
+        "from": "dist-electron",
+        "to": ".",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/build/libs/",
+        "to": "backend/",
+        "filter": [
+          "*.jar"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    }
   }
 }

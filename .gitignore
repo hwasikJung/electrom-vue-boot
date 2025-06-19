@@ -31,3 +31,5 @@ coverage
 
 # 프로젝트 제외 경로
 /frontend/.vscode/
+/dist_electron
+/frontend/dist*

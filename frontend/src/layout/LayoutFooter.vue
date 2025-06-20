@@ -2,7 +2,7 @@
   <div class="layout-footer">
     <div class="footer-content">
       <div class="footer-logo">
-        <img src="/src/assets/images/logo/logo.png" alt="한국에너지공단" />
+        <img :src="logoImage" alt="한국에너지공단" />
       </div>
       <div class="footer-info">
         <p>
@@ -14,7 +14,13 @@
     </div>
   </div>
 </template>
+<script setup>
+import { useImages } from '@/shared/composables/useImages.js';
 
+const { commonImages } = useImages();
+
+const logoImage = commonImages.value.logo;
+</script>
 <style lang="scss" scoped>
 .layout-footer {
   width: 100%;

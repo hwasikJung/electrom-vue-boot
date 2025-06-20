@@ -4,9 +4,10 @@
       <div class="header-container">
         <img
           class="logo-image"
-          src="/src/assets/images/logo/logo.png"
+          :src="logoImage"
           @click="handleTitleClick"
-          alt="logo" />
+          alt="logo"
+        />
 
         <div class="header-right">
           <q-tabs align="left">
@@ -22,6 +23,11 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
+import { useImages } from '@/shared/composables/useImages.js';
+
+const { commonImages } = useImages();
+
+const logoImage = commonImages.value.logo;
 
 const router = useRouter();
 
